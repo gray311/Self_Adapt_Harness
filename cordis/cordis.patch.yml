@@ -1,0 +1,91 @@
+# SAH's model-facing overlay for the shipped DeepSeek Harness headless profile.
+# Secrets stay in environment variables; this file only names their references.
+
+- id: agent-default-model
+  config:
+    provider: sah-vllm
+    model: !!js process.env.SAH_CORDIS_MODEL
+
+- id: llm-pi-ai
+  config:
+    providers:
+      sah-vllm:
+        displayName: SAH vLLM (OpenAI-compatible)
+        apiKeyEnv: OPENAI_API_KEY
+        api: openai-completions
+        baseURL: !!js process.env.OPENAI_BASE_URL
+        defaultContextWindow: !!js "Number(process.env.SAH_CORDIS_CONTEXT_WINDOW)"
+        defaultMaxTokens: !!js "Number(process.env.SAH_CORDIS_MAX_TOKENS)"
+        defaultInput: [text]
+        streamIdleTimeoutMs: 600000
+        retryPolicy:
+          mode: normal
+          maxRetries: !!js "Number(process.env.SAH_CORDIS_MAX_RETRIES)"
+          backoff:
+            initialDelayMs: 500
+            maxDelayMs: 5000
+            jitterRatio: 0.1
+        models:
+          - id: !!js process.env.SAH_CORDIS_MODEL
+            name: !!js process.env.SAH_CORDIS_MODEL
+            contextWindow: !!js "Number(process.env.SAH_CORDIS_CONTEXT_WINDOW)"
+            maxTokens: !!js "Number(process.env.SAH_CORDIS_MAX_TOKENS)"
+            reasoningEfforts: false
+
+# Keep one readable, lossless event per line for trajectory analysis. The
+# default DSH backend uses zstd + packed chunks, which is efficient but less
+# convenient as an experiment artifact.
+- id: session-persistence-jsonl
+  config:
+    root: !!js process.env.SAH_CORDIS_TRAJECTORY_ROOT
+    compression: none
+    packChunks: false
+
+# SAH rollouts have an intentionally narrow tool surface.  These DSH tools are
+# useful in the general coding profile but would change the H1/H2 action space.
+- id: session-title-llm
+  disabled: true
+- id: agent-instructions
+  disabled: true
+- id: tool-bash
+  disabled: true
+- id: tool-pwsh
+  disabled: true
+- id: tool-jobs
+  disabled: true
+- id: tool-fs
+  disabled: true
+- id: tool-fs-search
+  disabled: true
+- id: tool-skill
+  disabled: true
+- id: tool-subagent-control
+  disabled: true
+- id: tool-subagent-list-agents
+  disabled: true
+- id: tool-subagent
+  disabled: true
+- id: tool-subagent-fork
+  disabled: true
+- id: tool-workflow
+  disabled: true
+- id: tool-todo
+  disabled: true
+- id: tool-goal
+  disabled: true
+- id: tool-ralph
+  disabled: true
+- id: tool-str-replace-editor
+  disabled: true
+- id: tool-web
+  disabled: true
+
+- id: system-prompt
+  config:
+    includeHarnessIdentity: false
+    includeRuntimeContext: false
+    persona: ''
+
+- insert:
+    - id: sah-bridge
+      name: ./plugins/sah-bridge.mjs

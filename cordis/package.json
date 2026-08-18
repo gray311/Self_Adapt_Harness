@@ -1,0 +1,18 @@
+{
+  "name": "sah-cordis-runtime",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Cordis-backed DeepSeek Harness runtime for SAH",
+  "type": "module",
+  "engines": {
+    "node": "^22.19.0 || >=24.0.0"
+  },
+  "scripts": {
+    "dump-config": "./run.sh --dump-config",
+    "smoke": "./smoke.sh"
+  },
+  "dependencies": {
+    "@deepseek-ai/cordis": "4.0.1",
+    "@deepseek-ai/dsh": "0.1.0-rc.7"
+  }
+}
