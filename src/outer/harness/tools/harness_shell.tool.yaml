@@ -1,0 +1,15 @@
+type: tool
+name: harness_shell
+description: >-
+  Inspect the private candidate H2 filesystem. Accepts exactly one read-only
+  shell-shaped command: `pwd`, `ls [-la] [path]`, `cat path`, `find [path]`, or
+  `tree [path]`. Start with `cat agent.yaml`; its output is tool feedback in
+  your trajectory. Paths are relative to the H2 root and cannot escape it.
+input_schema:
+  type: object
+  properties:
+    command:
+      type: string
+      description: A single allowed read-only command, e.g. `cat agent.yaml`.
+  required: [command]
+  additionalProperties: false

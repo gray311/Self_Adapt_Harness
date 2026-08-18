@@ -1,0 +1,19 @@
+type: tool
+name: write_harness_file
+description: >-
+  Create or replace one file in the private candidate H2 package. Use this for
+  a new component file or a deliberate full rewrite. Parent component
+  directories are created automatically. Runtime and provenance files are
+  read-only. An existing file must first be read with `cat`. After adding a
+  component, mount it in agent.yaml and list it in prompt.md.
+input_schema:
+  type: object
+  properties:
+    path:
+      type: string
+      description: Relative H2 path, such as custom_tools/shape_probe.py.
+    content:
+      type: string
+      description: Complete UTF-8 file contents.
+  required: [path, content]
+  additionalProperties: false

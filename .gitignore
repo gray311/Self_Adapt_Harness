@@ -1,0 +1,25 @@
+# runtime / large artifacts (never commit)
+# ahc_work = deprecated x86-tester experiment (60M)
+ahc_work/
+runs/
+checkpoints/
+exports/
+*.sqsh
+*.safetensors
+*.log
+
+# data lives outside repo: $DATASET_ROOT/self_adapt_harness
+datasets/
+raw/
+
+# python noise
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+.ipynb_checkpoints/
+
+# editor / os
+.DS_Store
+*.swp
+_outer_round_worker.sh.new*

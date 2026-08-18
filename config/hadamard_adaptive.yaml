@@ -1,0 +1,35 @@
+# A/B test: Adaptive features on Hadamard — the exploration-limited task
+# (49/49 rollout bests were the identical seed). Sequential sampling forces
+# each sample to differ from prior valid actions; the analysis brief names
+# unexplored axes. Runs alongside any sah baseline; disjoint round range.
+protocol: adaptive_v1
+task: eft__math__hadamard_maximal_det
+rounds: 12
+round_base: 960
+workspace: /lustre/fsw/portfolios/av/users/yingzim/runs/self_adapt_harness/adaptive_ab/eft__math__hadamard_maximal_det
+
+sampling:
+  K: 8
+  mode: parallel        # RL rollouts MUST be i.i.d. from one policy (GRPO exchangeability)
+  max_evals: 30
+  eval_timeout: 180
+  force_tool_frac: 0.25
+
+reward:
+  impl: v3
+  hist_lambda: 0.3
+
+analysis:
+  enabled: true
+  performance_analyzer: true
+  design_analyzer: true
+
+sequential:
+  enabled: false        # sequential conditioning breaks GRPO group-relative advantage
+  share_valid_actions: true
+  max_shared: 3          # bound context growth across serial samples
+
+leakage_guard:
+  champion_isolation: true
+  neutralize_claim_words: true
+  scrub_leak_markers: true

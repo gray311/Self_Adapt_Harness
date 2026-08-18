@@ -1,0 +1,80 @@
+type: agent
+name: outer_h1_proposer
+description: >-
+  H1 — the FIXED outer harness. Runs the proposer M_phi (Qwen3.5-9B + LoRA phi)
+  through an inspect -> edit-files -> validate -> submit loop over ONE private
+  candidate H2 package.
+  This package never changes during training (plan.md §0.3); only phi does.
+max_context_tokens: 131072
+system_prompt: ./system.md
+system_prompt_type: file
+tool_call_mode: structured
+max_iterations: 32
+retry_attempts: 2
+retry_backoff_max_seconds: 30
+timeout: 600
+
+# Endpoint fields are overridden at runtime (propose.py); sampling here is part
+# of H1 and is preserved: temperature 1.0 for candidate diversity (GRPO group).
+llm_config:
+  model: qwen3.5-9b
+  base_url: http://127.0.0.1:8800/v1
+  api_key: EMPTY
+  api_type: openai_chat_completion
+  max_tokens: 4096
+  temperature: 0.7
+  top_p: 0.9
+  stream: false
+
+sandbox_config:
+  type: local
+  work_dir: /tmp
+
+tools:
+  - name: harness_shell
+    yaml_path: ./tools/harness_shell.tool.yaml
+    binding: outer.harness.tools.design:harness_shell
+  - name: write_harness_file
+    yaml_path: ./tools/write_harness_file.tool.yaml
+    binding: outer.harness.tools.design:write_harness_file
+  - name: edit_harness_file
+    yaml_path: ./tools/edit_harness_file.tool.yaml
+    binding: outer.harness.tools.design:edit_harness_file
+  - name: delete_harness_file
+    yaml_path: ./tools/delete_harness_file.tool.yaml
+    binding: outer.harness.tools.design:delete_harness_file
+  - name: validate_harness
+    yaml_path: ./tools/validate_harness.tool.yaml
+    binding: outer.harness.tools.design:validate_harness
+  - name: submit_harness
+    yaml_path: ./tools/submit_harness.tool.yaml
+    binding: outer.harness.tools.design:submit_harness
+
+stop_tools: [submit_harness]
+
+skills: []
+
+middlewares:
+  # custom: repair/refuse malformed tool arguments BEFORE NexAU's late schema
+  # validation (TOOLSCHEMA-001); must run first so later middlewares and the
+  # tools see repaired arguments
+  - import: outer.harness.middlewares.schema_guard:SchemaGuardMiddleware
+    params:
+      escalate_after: 2
+  # custom: push the proposer to submit before the iteration cap
+  - import: outer.harness.middlewares.submit_reminder:SubmitReminderMiddleware
+    params:
+      remind_from_iteration: 6
+      max_iterations: 32
+  # built-in: keep validator feedback bounded
+  - import: nexau.archs.main_sub.execution.middleware.long_tool_output:LongToolOutputMiddleware
+    params:
+      max_output_chars: 6000
+      head_lines: 30
+      tail_lines: 20
+      head_chars: 3000
+      tail_chars: 3000
+      bypass_tool_names: [harness_shell, submit_harness]
+
+tracers:
+  - import: nexau.archs.tracer.adapters.in_memory:InMemoryTracer
